@@ -1,7 +1,9 @@
 # Football Trivia Quiz App
 
 ## Description
-The **Football Trivia Quiz App** is a fun and challenging quiz game that tests your knowledge of football. With 15 different high-level football-related questions, the app randomly selects 5 questions for each session, ensuring a varied experience every time. The app is built with vanilla JavaScript, HTML, and CSS, providing a simple and interactive user experience.
+The **Football Trivia Quiz App** is a fun and challenging quiz game that tests your knowledge of football.
+With 15 different high-level questions related to football, the app randomly selects 5 questions for each session, ensuring a varied experience every time.
+The app is built with JavaScript, HTML, and CSS, providing a simple and interactive user experience.
 
 ## Features
 - 15 football-related questions.
