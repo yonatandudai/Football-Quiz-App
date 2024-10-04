@@ -7,6 +7,38 @@
 body{
     background: #001e4d;
 }
+
+/* Center the container */
+#start-container {
+    text-align: center;
+    margin-top: 100px;
+}
+
+#start-container h1 {
+    font-size: 2rem;
+    color: #fff;
+}
+
+#start-container p {
+    font-size: 1.2rem;
+    color: #fff;
+}
+
+#start-btn {
+    background: #001e4d;
+    color: white;
+    font-size: 1.5rem;
+    padding: 15px 30px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+#start-btn:hover {
+    background: #004080;
+}
+
 .app{
     background: #fff;
     width: 90%;

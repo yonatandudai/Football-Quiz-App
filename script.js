@@ -136,6 +136,16 @@ const totalQuestions = [
     } 
 ];
 
+// Wait until the DOM is fully loaded before attaching the event listener
+document.addEventListener("DOMContentLoaded", function() {
+    // Event listener for Start Game button
+    document.getElementById('start-btn').addEventListener('click', function() {
+        document.getElementById('start-container').style.display = 'none'; // Hide the start container
+        document.getElementById('quiz-container').style.display = 'block';  // Show the quiz container
+        startQuiz(); // Call the function to start the quiz
+    });
+});
+
 const questionElement = document.getElementById("question");
 const answerButtons = document.getElementById("answer-buttons");
 const nextButton = document.getElementById("next-btn");
