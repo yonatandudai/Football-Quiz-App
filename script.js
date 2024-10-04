@@ -136,22 +136,51 @@ const totalQuestions = [
     } 
 ];
 
-// Wait until the DOM is fully loaded before attaching the event listener
+let scoreboard = [];  // Initialize the scoreboard array
+let username = "";  // Declare username globally
+
 document.addEventListener("DOMContentLoaded", function() {
+    // Retrieve scoreboard from localStorage
+    const savedScoreboard = localStorage.getItem('scoreboard');
+    if (savedScoreboard) {
+        scoreboard = JSON.parse(savedScoreboard);  // Parse the saved scoreboard
+        displayScoreboard(true);  // Only display it on demand, not immediately
+    }
+
     // Event listener for Start Game button
     document.getElementById('start-btn').addEventListener('click', function() {
-        document.getElementById('start-container').style.display = 'none'; // Hide the start container
-        document.getElementById('quiz-container').style.display = 'block';  // Show the quiz container
-        startQuiz(); // Call the function to start the quiz
+        username = document.getElementById('username').value;
+        if (username === "") {
+            alert("Please enter your name to start the quiz!");
+            return;  // Stop the quiz from starting if no name is entered
+        }
+
+        document.getElementById('start-container').style.display = 'none'; // Hide start container
+        document.getElementById('clear-scoreboard-btn').style.display = 'none';  // Show the quiz container
+        document.getElementById('switch-username-btn').style.display = 'none';
+        displayScoreboard(false); // Hide the scoreboard when the quiz starts
+        document.getElementById('quiz-container').style.display = 'block';
+        startQuiz(); // Start the quiz
+    });
+
+    // Event listener for Clear Scoreboard button
+    document.getElementById('clear-scoreboard-btn').addEventListener('click', function() {
+        clearScoreboard();  // Call the function to clear the scoreboard
+    });
+
+    document.getElementById('switch-username-btn').addEventListener('click', function() {
+        switchUsername();  // Call the function to switch the username
     });
 });
 
 const questionElement = document.getElementById("question");
 const answerButtons = document.getElementById("answer-buttons");
 const nextButton = document.getElementById("next-btn");
-
+let timerInterval;  // To store the interval for the countdown
+let timeLeft = 30;
 let currentQuestionIndex = 0;
 let score = 0;
+
 let randomQuestions = [];
 let previousQuestions = [];
 
@@ -172,7 +201,7 @@ function shuffle(array) {
 }
 
 function getRandomQuestions() {
-    let availableQuestions = totalQuestions.filter(q => ! previousQuestions.includes(q));
+    let availableQuestions = totalQuestions.filter(q => !previousQuestions.includes(q));
     const shuffledQuestions = shuffle([...availableQuestions]);
     let newQuestions = shuffledQuestions.slice(0, 5);
     previousQuestions = newQuestions;
@@ -181,27 +210,53 @@ function getRandomQuestions() {
 
 function showQuestion(){
     resetState();
-    var questions = getRandomQuestions();
-    let currenrQuestion = randomQuestions [currentQuestionIndex];
-    let questionNum = currentQuestionIndex +1;
-    questionElement.innerHTML = questionNum + ". " + currenrQuestion.question;
-    currenrQuestion.answers.forEach(answer=>{
+    startTimer();
+    let currentQuestion = randomQuestions[currentQuestionIndex];
+    let questionNum = currentQuestionIndex + 1;
+    questionElement.innerHTML = questionNum + ". " + currentQuestion.question;
+    currentQuestion.answers.forEach(answer => {
         const button = document.createElement("button");
         button.innerHTML = answer.text;
         button.classList.add("btn");
         answerButtons.appendChild(button);
-        if (answer.correct){
+        if (answer.correct) {
             button.dataset.correct = answer.correct;
         }
         button.addEventListener("click", selectAnswer);
-    })
+    });
 }
 
-
 function resetState(){
+    clearInterval(timerInterval);
     nextButton.style.display = "none";
+    document.getElementById('timer').innerText = '';
     while(answerButtons.firstChild){
         answerButtons.removeChild(answerButtons.firstChild);
+    }
+}
+
+function startTimer() {
+    timeLeft = 30;  // Reset the time to 30 seconds
+    document.getElementById('timer').innerText = `Time left: ${timeLeft}`;  // Display the initial time
+
+    timerInterval = setInterval(() => {
+        timeLeft--;
+        document.getElementById('timer').innerText = `Time left: ${timeLeft}`;
+
+        if (timeLeft <= 0) {
+            clearInterval(timerInterval);
+            handleTimeOut();  // Automatically move to the next question when time is up
+        }
+    }, 1000);  // Update the timer every second
+}
+
+function handleTimeOut() {
+    // Automatically move to the next question
+    if (currentQuestionIndex < randomQuestions.length - 1) {
+        currentQuestionIndex++;
+        showQuestion();  // Show the next question
+    } else {
+        showScore();  // Show the final score when the quiz is over
     }
 }
 
@@ -210,13 +265,12 @@ function selectAnswer(e){
     const isCorrect = selectedBtn.dataset.correct === "true";
     if (isCorrect){
         selectedBtn.classList.add("correct");
-        score++;
-    }
-    else{
+        score += 170 +timeLeft;  // 2 points per second left, and 100 points for the correct answer
+    } else {
         selectedBtn.classList.add("incorrect");
     }
-    Array.from(answerButtons.children).forEach(button =>{
-        if(button.dataset.correct == "true"){
+    Array.from(answerButtons.children).forEach(button => {
+        if(button.dataset.correct === "true"){
             button.classList.add("correct");
         }
         button.disabled = true;
@@ -226,28 +280,86 @@ function selectAnswer(e){
 
 function showScore(){
     resetState();
-    questionElement.innerHTML = `Your score is ${score} out of ${randomQuestions.length}!`;
+    questionElement.innerHTML = `Your score is ${score}!`;
+    
+    // Check if the user already exists in the scoreboard
+    let existingUser = scoreboard.find(entry => entry.name === username);
+    if (existingUser) {
+        // Update the score only if the new score is higher
+        if (score > existingUser.score) {
+            existingUser.score = score;
+        }
+    } else {
+        // Add the new user to the scoreboard
+        scoreboard.push({ name: username, score: score });
+    }
+    // Save the updated scoreboard to localStorage
+    localStorage.setItem('scoreboard', JSON.stringify(scoreboard));
+
+    // Show the scoreboard after the quiz ends
+    displayScoreboard(true);
+
+    // Show the Clear Scoreboard button again after the quiz ends
+    document.getElementById('clear-scoreboard-btn').style.display = 'block';
+    document.getElementById('switch-username-btn').style.display = 'block';  // Show Switch Username button
+
     nextButton.innerHTML = "Play Again";
     nextButton.style.display = "block";
+}
+
+
+function switchUsername() {
+    // Reset the quiz and go back to the start page
+    document.getElementById('quiz-container').style.display = 'none';  // Hide the quiz container
+    document.getElementById('start-container').style.display = 'block';  // Show the start container
+
+    // Clear the username input field
+    document.getElementById('username').value = '';
+
+    // Hide the Switch Username button again until the next session ends
+    document.getElementById('switch-username-btn').style.display = 'none';
+}
+
+
+function displayScoreboard(isVisible) {
+    const scoreboardElement = document.getElementById('scoreboard');
+
+    if (isVisible) {
+        scoreboardElement.style.display = 'block';
+        scoreboardElement.innerHTML = "<h2>Scoreboard</h2>"; // Clear old content
+        if (scoreboard.length === 0) {
+            scoreboardElement.innerHTML += "<p>No scores yet!</p>";
+        } else {
+            // Sort and display scoreboard entries
+            scoreboard.sort((a, b) => b.score - a.score);  // Sort by score descending
+            scoreboard.forEach((entry, index) => {
+                scoreboardElement.innerHTML += `<p>${index + 1}. ${entry.name}: ${entry.score} points</p>`;
+            });
+        }
+    } else {
+        scoreboardElement.style.display = 'none';
+    }
+}
+
+function clearScoreboard(){
+    scoreboard = [];  // Clear the scoreboard array
+    localStorage.removeItem('scoreboard');  // Remove scoreboard from localStorage
+    displayScoreboard(true);  // Update the display
 }
 
 function handleNextBtn(){
     currentQuestionIndex++;
     if (currentQuestionIndex < randomQuestions.length){
         showQuestion();
-    }
-    else{
+    } else {
         showScore();
     }
 }
 
-nextButton.addEventListener("click",()=>{
+nextButton.addEventListener("click", () => {
     if (currentQuestionIndex < randomQuestions.length){
         handleNextBtn();
-    }
-    else{
+    } else {
         startQuiz();
     }
-})
-
-startQuiz();
+});

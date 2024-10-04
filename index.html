@@ -8,22 +8,26 @@
 <body>
 <div id="start-container">
     <h1>Welcome to the Football Trivia Quiz!</h1>
-    <p>Click below to start!</p>
-    <button id="start-btn">Start Game</button>
+    <p>Enter your name to start the game:</p>
+    <input type="text" id="username" placeholder="Enter your name" required>
+    <button id="start-btn">Start Game</button>>
+    
 </div>
+
 <div id="quiz-container" class="app" style="display: none;">
     <h1>Football Quiz</h1>
     <div class="quiz">
         <h2 id="question">Question goes here</h2>
-        <div id="answer-buttons">
-            <button class="btn">Answer 1</button>
-            <button class="btn">Answer 2</button>
-            <button class="btn">Answer 3</button>
-            <button class="btn">Answer 4</button>
-        </div>
-        <button id="next-btn">next</button>
+        <h2 id="timer">Time left: 30</h2>
+        <div id="answer-buttons"></div> <!-- Buttons will be dynamically added here -->
+        <button id="next-btn" style="display: none;">Next</button> <!-- Hidden initially -->
+        <button id="switch-username-btn" style="display:none;">Switch Username</button> <!-- Initially hidden -->
     </div>
 </div>
+
+<div id="scoreboard" style="display:none;"></div>
+<button id="clear-scoreboard-btn" style="display: none;">Clear Scoreboard</button>
+
 <script src="script.js"></script>
 </body>
 </html>
